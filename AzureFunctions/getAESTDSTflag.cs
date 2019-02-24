@@ -3,7 +3,6 @@ using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Newtonsoft.Json;
 using System.Net.Http;
-using Microsoft.Azure.WebJobs.Host;
 using System.Net;
 using System.Text;
 
@@ -12,7 +11,7 @@ namespace getAESTDSTFlag
     public static class Functions
     {
         [FunctionName("getAESTDSTFlag")]
-        public static HttpResponseMessage Run([HttpTrigger(AuthorizationLevel.Function, "get", Route = null)] HttpRequestMessage req, TraceWriter log)
+        public static HttpResponseMessage Run([HttpTrigger(AuthorizationLevel.Function, "get", Route = null)] HttpRequestMessage req)
         {
 
             DateTime theTime = DateTime.Now;
