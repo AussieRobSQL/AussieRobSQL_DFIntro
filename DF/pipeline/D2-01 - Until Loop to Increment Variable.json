@@ -1,0 +1,81 @@
+{
+	"name": "D2-01 - Until Loop to Increment Variable",
+	"properties": {
+		"activities": [
+			{
+				"name": "Set counter to 1",
+				"type": "SetVariable",
+				"typeProperties": {
+					"variableName": "counter",
+					"value": "1"
+				}
+			},
+			{
+				"name": "Until counter is equal to 5",
+				"type": "Until",
+				"dependsOn": [
+					{
+						"activity": "Set counter to 1",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"typeProperties": {
+					"expression": {
+						"value": "@equals(5,int(variables('counter')))",
+						"type": "Expression"
+					},
+					"activities": [
+						{
+							"name": "Add 1 to counter variable",
+							"description": "Add 1 to counter variable. Store in tempCounter as variables can't be self updated.\nDon't forget to convert the counter to int, and the result back to string.",
+							"type": "SetVariable",
+							"typeProperties": {
+								"variableName": "tempCounter",
+								"value": {
+									"value": "@string(add(1,int(variables('counter'))))",
+									"type": "Expression"
+								}
+							}
+						},
+						{
+							"name": "Set counter equal to tempCounter",
+							"description": "Set the counter to tempCounter to finalise the increment of the count.",
+							"type": "SetVariable",
+							"dependsOn": [
+								{
+									"activity": "Add 1 to counter variable",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"typeProperties": {
+								"variableName": "counter",
+								"value": {
+									"value": "@variables('tempCounter')",
+									"type": "Expression"
+								}
+							}
+						}
+					],
+					"timeout": "7.00:00:00"
+				}
+			}
+		],
+		"variables": {
+			"counter": {
+				"type": "String",
+				"defaultValue": "1"
+			},
+			"tempCounter": {
+				"type": "String"
+			}
+		},
+		"folder": {
+			"name": "Demo 2"
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

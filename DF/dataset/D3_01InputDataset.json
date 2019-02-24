@@ -1,0 +1,30 @@
+{
+	"name": "D3_01InputDataset",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "AussieRobSQL_DFIntro_StorageAccount",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"inputDatasetName": {
+				"type": "String"
+			}
+		},
+		"type": "AzureBlob",
+		"typeProperties": {
+			"format": {
+				"type": "JsonFormat",
+				"filePattern": "arrayOfObjects",
+				"jsonPathDefinition": {
+					"name": "$.['name']"
+				}
+			},
+			"fileName": {
+				"value": "@dataset().inputDatasetName",
+				"type": "Expression"
+			},
+			"folderPath": "aussierobsql-dfintro/Demo3Files"
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

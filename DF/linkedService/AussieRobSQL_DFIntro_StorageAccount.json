@@ -1,0 +1,12 @@
+{
+	"name": "AussieRobSQL_DFIntro_StorageAccount",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"description": "AussieRobSQL_DFIntro_StorageAccount",
+		"type": "AzureBlobStorage",
+		"typeProperties": {
+			"connectionString": "DefaultEndpointsProtocol=https;AccountName=aussierobsqlv2;EndpointSuffix=core.windows.net;",
+			"encryptedCredential": "ew0KICAiVmVyc2lvbiI6ICIyMDE3LTExLTMwIiwNCiAgIlByb3RlY3Rpb25Nb2RlIjogIktleSIsDQogICJTZWNyZXRDb250ZW50VHlwZSI6ICJQbGFpbnRleHQiLA0KICAiQ3JlZGVudGlhbElkIjogIkFVU1NJRVJPQi1ERklOVFJPRFVDVElPTl8wNzM0Mzc4OS1iNWEzLTQ5MjEtYjBkZC0yMzRjYjI3MGY4ZGUiDQp9"
+		}
+	}
+}

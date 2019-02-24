@@ -1,0 +1,129 @@
+{
+	"name": "D3-01 Read Array Input from Dataset",
+	"properties": {
+		"activities": [
+			{
+				"name": "Lookup D3_01InputDataset",
+				"type": "Lookup",
+				"dependsOn": [
+					{
+						"activity": "Get Folder Listing",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"typeProperties": {
+					"source": {
+						"type": "BlobSource",
+						"recursive": false
+					},
+					"dataset": {
+						"referenceName": "D3_01InputDataset",
+						"type": "DatasetReference",
+						"parameters": {
+							"inputDatasetName": {
+								"value": "@first(activity('Get Folder Listing').output.childItems).name",
+								"type": "Expression"
+							}
+						}
+					},
+					"firstRowOnly": false
+				}
+			},
+			{
+				"name": "ForEach name in array",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "Lookup D3_01InputDataset",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('Lookup D3_01InputDataset').output.value",
+						"type": "Expression"
+					},
+					"isSequential": true,
+					"activities": [
+						{
+							"name": "Add values to array",
+							"type": "AppendVariable",
+							"typeProperties": {
+								"variableName": "array",
+								"value": {
+									"value": "@item().name",
+									"type": "Expression"
+								}
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "Execute D3-02 Pipeline",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "ForEach name in array",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "D3-02 Filter Activity",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"inputArray": {
+							"value": "@variables('array')",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "Get Folder Listing",
+				"type": "GetMetadata",
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"typeProperties": {
+					"dataset": {
+						"referenceName": "D3_01Folder",
+						"type": "DatasetReference"
+					},
+					"fieldList": [
+						"childItems"
+					]
+				}
+			}
+		],
+		"variables": {
+			"array": {
+				"type": "Array"
+			}
+		},
+		"folder": {
+			"name": "Demo 3"
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

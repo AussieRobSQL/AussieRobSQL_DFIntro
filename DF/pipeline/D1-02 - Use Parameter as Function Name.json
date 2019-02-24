@@ -1,0 +1,65 @@
+{
+	"name": "D1-02 - Use Parameter as Function Name",
+	"properties": {
+		"activities": [
+			{
+				"name": "Call Function using Parameter",
+				"description": "Call the Azure Function - using the Pipeline Parameter.",
+				"type": "AzureFunctionActivity",
+				"policy": {
+					"timeout": "00:01:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"typeProperties": {
+					"functionName": {
+						"value": "@pipeline().parameters.functionName",
+						"type": "Expression"
+					},
+					"method": "GET"
+				},
+				"linkedServiceName": {
+					"referenceName": "AussieRobSQLFunctions",
+					"type": "LinkedServiceReference"
+				}
+			},
+			{
+				"name": "Execute D1-03 Pipeline",
+				"description": "Execute D1-03 - If Condition - Check isDST Flag. Pass output from previous activity as parameter value.",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "Call Function using Parameter",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "D1-03 - If Condition - Check isDST Flag",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"getAESTDSTFlagOutput": {
+							"value": "@activity('Call Function using Parameter').output",
+							"type": "Expression"
+						}
+					}
+				}
+			}
+		],
+		"parameters": {
+			"functionName": {
+				"type": "String"
+			}
+		},
+		"folder": {
+			"name": "Demo 1"
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

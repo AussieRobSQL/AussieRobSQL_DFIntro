@@ -1,0 +1,18 @@
+{
+	"name": "D1-04 - Wait if isDST is false",
+	"properties": {
+		"activities": [
+			{
+				"name": "Wait for 3600 seconds",
+				"type": "Wait",
+				"typeProperties": {
+					"waitTimeInSeconds": 10
+				}
+			}
+		],
+		"folder": {
+			"name": "Demo 1"
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

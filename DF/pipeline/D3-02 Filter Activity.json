@@ -1,0 +1,30 @@
+{
+	"name": "D3-02 Filter Activity",
+	"properties": {
+		"activities": [
+			{
+				"name": "Filter for value3",
+				"type": "Filter",
+				"typeProperties": {
+					"items": {
+						"value": "@pipeline().parameters.inputArray",
+						"type": "Expression"
+					},
+					"condition": {
+						"value": "@equals(item(), 'value3')",
+						"type": "Expression"
+					}
+				}
+			}
+		],
+		"parameters": {
+			"inputArray": {
+				"type": "Array"
+			}
+		},
+		"folder": {
+			"name": "Demo 3"
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

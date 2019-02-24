@@ -1,0 +1,27 @@
+{
+	"name": "D1-01 - Call Pipeline and Pass Parameter",
+	"properties": {
+		"description": "Pipeline calling another Pipeline that has a Parameter.",
+		"activities": [
+			{
+				"name": "Execute D1-02 Pipeline",
+				"description": "Call D1-02 - Use Parameter as Function Name, passing the function name as the parameter value.",
+				"type": "ExecutePipeline",
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "D1-02 - Use Parameter as Function Name",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"functionName": "getAESTDSTFlag"
+					}
+				}
+			}
+		],
+		"folder": {
+			"name": "Demo 1"
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

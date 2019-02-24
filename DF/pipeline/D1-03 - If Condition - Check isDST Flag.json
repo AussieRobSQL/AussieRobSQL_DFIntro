@@ -1,0 +1,40 @@
+{
+	"name": "D1-03 - If Condition - Check isDST Flag",
+	"properties": {
+		"activities": [
+			{
+				"name": "If Condition - Check isDST Flag",
+				"description": "",
+				"type": "IfCondition",
+				"typeProperties": {
+					"expression": {
+						"value": "@equals(true, pipeline().parameters.getAESTDSTFlagOutput.isDST)",
+						"type": "Expression"
+					},
+					"ifFalseActivities": [
+						{
+							"name": "Execute D1-04 Pipeline",
+							"type": "ExecutePipeline",
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "D1-04 - Wait if isDST is false",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true
+							}
+						}
+					]
+				}
+			}
+		],
+		"parameters": {
+			"getAESTDSTFlagOutput": {
+				"type": "Object"
+			}
+		},
+		"folder": {
+			"name": "Demo 1"
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

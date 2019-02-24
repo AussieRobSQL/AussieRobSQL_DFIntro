@@ -1,0 +1,23 @@
+{
+	"name": "D3_01Folder",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "AussieRobSQL_DFIntro_StorageAccount",
+			"type": "LinkedServiceReference"
+		},
+		"type": "AzureBlob",
+		"typeProperties": {
+			"format": {
+				"type": "TextFormat",
+				"columnDelimiter": ",",
+				"rowDelimiter": "",
+				"nullValue": "\\N",
+				"treatEmptyAsNull": true,
+				"skipLineCount": 0,
+				"firstRowAsHeader": false
+			},
+			"folderPath": "aussierobsql-dfintro/Demo3Files"
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}
