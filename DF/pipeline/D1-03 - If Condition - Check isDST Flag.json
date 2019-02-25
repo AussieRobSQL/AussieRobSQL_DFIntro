@@ -1,6 +1,7 @@
 {
 	"name": "D1-03 - If Condition - Check isDST Flag",
 	"properties": {
+		"description": "Parameter getAESTDSTFlagOutput passed from previous pipeline. If condition to check the isDST flag.",
 		"activities": [
 			{
 				"name": "If Condition - Check isDST Flag",
@@ -14,6 +15,7 @@
 					"ifFalseActivities": [
 						{
 							"name": "Execute D1-04 Pipeline",
+							"description": "Execute D1-04 Pipeline.",
 							"type": "ExecutePipeline",
 							"typeProperties": {
 								"pipeline": {
