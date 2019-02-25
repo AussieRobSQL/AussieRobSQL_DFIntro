@@ -1,0 +1,129 @@
+{
+	"$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"type": "string",
+			"metadata": "Data Factory Name",
+			"defaultValue": "AussieRob-DFIntroduction"
+		}
+	},
+	"variables": {
+		"factoryId": "[concat('Microsoft.DataFactory/factories/', parameters('factoryName'))]"
+	},
+	"resources": [
+		{
+			"name": "[concat(parameters('factoryName'), '/D1-02 - Use Parameter as Function Name')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"description": "Pipeline has a parameter - functionName defined. Previous pipeline will pass the functionName value, and this will be used in the Azure Function Activity.",
+				"activities": [
+					{
+						"name": "Call Function using Parameter",
+						"description": "Call the Azure Function - using the Pipeline Parameter.",
+						"type": "AzureFunctionActivity",
+						"policy": {
+							"timeout": "00:01:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"typeProperties": {
+							"functionName": {
+								"value": "@pipeline().parameters.functionName",
+								"type": "Expression"
+							},
+							"method": "GET"
+						},
+						"linkedServiceName": {
+							"referenceName": "AussieRobSQLFunctions",
+							"type": "LinkedServiceReference"
+						}
+					},
+					{
+						"name": "Execute D1-03 Pipeline",
+						"description": "Execute D1-03 - If Condition - Check isDST Flag. Pass output from previous activity as parameter value.",
+						"type": "ExecutePipeline",
+						"dependsOn": [
+							{
+								"activity": "Call Function using Parameter",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"typeProperties": {
+							"pipeline": {
+								"referenceName": "D1-03 - If Condition - Check isDST Flag",
+								"type": "PipelineReference"
+							},
+							"waitOnCompletion": true,
+							"parameters": {
+								"getAESTDSTFlagOutput": {
+									"value": "@activity('Call Function using Parameter').output",
+									"type": "Expression"
+								}
+							}
+						}
+					}
+				],
+				"parameters": {
+					"functionName": {
+						"type": "String"
+					}
+				},
+				"folder": {
+					"name": "Demo 1"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/pipelines/D1-03 - If Condition - Check isDST Flag')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/D1-03 - If Condition - Check isDST Flag')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"description": "Parameter getAESTDSTFlagOutput passed from previous pipeline. If condition to check the isDST flag.",
+				"activities": [
+					{
+						"name": "If Condition - Check isDST Flag",
+						"description": "",
+						"type": "IfCondition",
+						"typeProperties": {
+							"expression": {
+								"value": "@equals(true, pipeline().parameters.getAESTDSTFlagOutput.isDST)",
+								"type": "Expression"
+							},
+							"ifFalseActivities": [
+								{
+									"name": "Execute D1-04 Pipeline",
+									"description": "Execute D1-04 Pipeline.",
+									"type": "ExecutePipeline",
+									"typeProperties": {
+										"pipeline": {
+											"referenceName": "D1-04 - Wait if isDST is false",
+											"type": "PipelineReference"
+										},
+										"waitOnCompletion": true
+									}
+								}
+							]
+						}
+					}
+				],
+				"parameters": {
+					"getAESTDSTFlagOutput": {
+						"type": "Object"
+					}
+				},
+				"folder": {
+					"name": "Demo 1"
+				}
+			}
+		}
+	]
+}
