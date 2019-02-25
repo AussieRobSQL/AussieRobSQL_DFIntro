@@ -1,6 +1,7 @@
 {
 	"name": "D1-02 - Use Parameter as Function Name",
 	"properties": {
+		"description": "Pipeline has a parameter - functionName defined. Previous pipeline will pass the functionName value, and this will be used in the Azure Function Activity.",
 		"activities": [
 			{
 				"name": "Call Function using Parameter",
