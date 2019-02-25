@@ -1,6 +1,7 @@
 {
 	"name": "D1-04 - Wait if isDST is false",
 	"properties": {
+		"description": "If isDST is false, run the Wait activity",
 		"activities": [
 			{
 				"name": "Wait for 3600 seconds",
