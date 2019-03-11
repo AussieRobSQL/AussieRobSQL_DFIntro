@@ -1,0 +1,24 @@
+{
+	"$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"value": "AngryKoala-DFIntro"
+		},
+		"AussieRobSQLFunctions_functionKey": {
+			"value": ""
+		},
+		"AussieRobSQL_DFIntro_StorageAccount_connectionString": {
+			"value": ""
+		},
+		"D3_01Folder_properties_typeProperties_folderPath": {
+			"value": "aussierobsql-dfintro/Demo3Files"
+		},
+		"D3_01InputDataset_properties_typeProperties_fileName": {
+			"value": "@dataset().inputDatasetName"
+		},
+		"D3_01InputDataset_properties_typeProperties_folderPath": {
+			"value": "aussierobsql-dfintro/Demo3Files"
+		}
+	}
+}

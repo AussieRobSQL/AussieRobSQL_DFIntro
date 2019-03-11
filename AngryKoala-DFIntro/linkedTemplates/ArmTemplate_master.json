@@ -1,0 +1,77 @@
+{
+	"$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"type": "string",
+			"metadata": "Data Factory Name",
+			"defaultValue": "AngryKoala-DFIntro"
+		},
+		"AussieRobSQLFunctions_functionKey": {
+			"type": "secureString",
+			"metadata": "Secure string for 'functionKey' of 'AussieRobSQLFunctions'"
+		},
+		"AussieRobSQL_DFIntro_StorageAccount_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'AussieRobSQL_DFIntro_StorageAccount'"
+		},
+		"D3_01Folder_properties_typeProperties_folderPath": {
+			"type": "string",
+			"defaultValue": "aussierobsql-dfintro/Demo3Files"
+		},
+		"D3_01InputDataset_properties_typeProperties_fileName": {
+			"type": "string",
+			"defaultValue": "@dataset().inputDatasetName"
+		},
+		"D3_01InputDataset_properties_typeProperties_folderPath": {
+			"type": "string",
+			"defaultValue": "aussierobsql-dfintro/Demo3Files"
+		},
+		"containerUri": {
+			"type": "string",
+			"metadata": "URI to storage account containing linked ARM templates"
+		},
+		"containerSasToken": {
+			"type": "string",
+			"metadata": "Sas Token to storage account containing linked ARM templates"
+		}
+	},
+	"variables": {
+		"factoryId": "[concat('Microsoft.DataFactory/factories/', parameters('factoryName'))]"
+	},
+	"resources": [
+		{
+			"name": "ArmTemplate_0",
+			"type": "Microsoft.Resources/deployments",
+			"apiVersion": "2018-02-01",
+			"properties": {
+				"mode": "incremental",
+				"templateLink": {
+					"uri": "[concat(parameters('containerUri'), '/ArmTemplate_0.json', parameters('containerSasToken'))]",
+					"contentVersion": "1.0.0.0"
+				},
+				"parameters": {
+					"factoryName": {
+						"value": "[parameters('factoryName')]"
+					},
+					"AussieRobSQLFunctions_functionKey": {
+						"value": "[parameters('AussieRobSQLFunctions_functionKey')]"
+					},
+					"AussieRobSQL_DFIntro_StorageAccount_connectionString": {
+						"value": "[parameters('AussieRobSQL_DFIntro_StorageAccount_connectionString')]"
+					},
+					"D3_01Folder_properties_typeProperties_folderPath": {
+						"value": "[parameters('D3_01Folder_properties_typeProperties_folderPath')]"
+					},
+					"D3_01InputDataset_properties_typeProperties_fileName": {
+						"value": "[parameters('D3_01InputDataset_properties_typeProperties_fileName')]"
+					},
+					"D3_01InputDataset_properties_typeProperties_folderPath": {
+						"value": "[parameters('D3_01InputDataset_properties_typeProperties_folderPath')]"
+					}
+				}
+			},
+			"dependsOn": []
+		}
+	]
+}

@@ -1,0 +1,585 @@
+{
+	"$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"type": "string",
+			"metadata": "Data Factory Name",
+			"defaultValue": "AngryKoala-DFIntro"
+		},
+		"AussieRobSQLFunctions_functionKey": {
+			"type": "secureString",
+			"metadata": "Secure string for 'functionKey' of 'AussieRobSQLFunctions'"
+		},
+		"AussieRobSQL_DFIntro_StorageAccount_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'AussieRobSQL_DFIntro_StorageAccount'"
+		},
+		"D3_01Folder_properties_typeProperties_folderPath": {
+			"type": "string",
+			"defaultValue": "aussierobsql-dfintro/Demo3Files"
+		},
+		"D3_01InputDataset_properties_typeProperties_fileName": {
+			"type": "string",
+			"defaultValue": "@dataset().inputDatasetName"
+		},
+		"D3_01InputDataset_properties_typeProperties_folderPath": {
+			"type": "string",
+			"defaultValue": "aussierobsql-dfintro/Demo3Files"
+		}
+	},
+	"variables": {
+		"factoryId": "[concat('Microsoft.DataFactory/factories/', parameters('factoryName'))]"
+	},
+	"resources": [
+		{
+			"name": "[concat(parameters('factoryName'), '/D1-01 - Call Pipeline and Pass Parameter')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"description": "Pipeline calling another Pipeline that has a Parameter.",
+				"activities": [
+					{
+						"name": "Execute D1-02 Pipeline",
+						"description": "Call D1-02 - Use Parameter as Function Name, passing the function name as the parameter value.",
+						"type": "ExecutePipeline",
+						"dependsOn": [],
+						"userProperties": [],
+						"typeProperties": {
+							"pipeline": {
+								"referenceName": "D1-02 - Use Parameter as Function Name",
+								"type": "PipelineReference"
+							},
+							"waitOnCompletion": true,
+							"parameters": {
+								"functionName": "getAESTDSTFlag"
+							}
+						}
+					}
+				],
+				"folder": {
+					"name": "Demo 1"
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/pipelines/D1-02 - Use Parameter as Function Name')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/D1-02 - Use Parameter as Function Name')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"description": "Pipeline has a parameter - functionName defined. Previous pipeline will pass the functionName value, and this will be used in the Azure Function Activity.",
+				"activities": [
+					{
+						"name": "Call Function using Parameter",
+						"description": "Call the Azure Function - using the Pipeline Parameter.",
+						"type": "AzureFunctionActivity",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "00:01:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"functionName": {
+								"value": "@pipeline().parameters.functionName",
+								"type": "Expression"
+							},
+							"method": "GET",
+							"headers": {}
+						},
+						"linkedServiceName": {
+							"referenceName": "AussieRobSQLFunctions",
+							"type": "LinkedServiceReference"
+						}
+					},
+					{
+						"name": "Execute D1-03 Pipeline",
+						"description": "Execute D1-03 - If Condition - Check isDST Flag. Pass output from previous activity as parameter value.",
+						"type": "ExecutePipeline",
+						"dependsOn": [
+							{
+								"activity": "Call Function using Parameter",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"pipeline": {
+								"referenceName": "D1-03 - If Condition - Check isDST Flag",
+								"type": "PipelineReference"
+							},
+							"waitOnCompletion": true,
+							"parameters": {
+								"getAESTDSTFlagOutput": {
+									"value": "@activity('Call Function using Parameter').output",
+									"type": "Expression"
+								}
+							}
+						}
+					}
+				],
+				"parameters": {
+					"functionName": {
+						"type": "String"
+					}
+				},
+				"folder": {
+					"name": "Demo 1"
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/AussieRobSQLFunctions')]",
+				"[concat(variables('factoryId'), '/pipelines/D1-03 - If Condition - Check isDST Flag')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/D1-03 - If Condition - Check isDST Flag')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"description": "Parameter getAESTDSTFlagOutput passed from previous pipeline. If condition to check the isDST flag.",
+				"activities": [
+					{
+						"name": "If Condition - Check isDST Flag",
+						"description": "",
+						"type": "IfCondition",
+						"dependsOn": [],
+						"userProperties": [],
+						"typeProperties": {
+							"expression": {
+								"value": "@equals(true, pipeline().parameters.getAESTDSTFlagOutput.isDST)",
+								"type": "Expression"
+							},
+							"ifFalseActivities": [
+								{
+									"name": "Execute D1-04 Pipeline",
+									"description": "Execute D1-04 Pipeline.",
+									"type": "ExecutePipeline",
+									"dependsOn": [],
+									"userProperties": [],
+									"typeProperties": {
+										"pipeline": {
+											"referenceName": "D1-04 - Wait if isDST is false",
+											"type": "PipelineReference"
+										},
+										"waitOnCompletion": true,
+										"parameters": {}
+									}
+								}
+							]
+						}
+					}
+				],
+				"parameters": {
+					"getAESTDSTFlagOutput": {
+						"type": "Object"
+					}
+				},
+				"folder": {
+					"name": "Demo 1"
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/pipelines/D1-04 - Wait if isDST is false')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/D1-04 - Wait if isDST is false')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"description": "If isDST is false, run the Wait activity",
+				"activities": [
+					{
+						"name": "Wait for 3600 seconds",
+						"type": "Wait",
+						"dependsOn": [],
+						"userProperties": [],
+						"typeProperties": {
+							"waitTimeInSeconds": 10
+						}
+					}
+				],
+				"folder": {
+					"name": "Demo 1"
+				},
+				"annotations": []
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/D2-01 - Until Loop to Increment Variable')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Set counter to 1",
+						"type": "SetVariable",
+						"dependsOn": [],
+						"userProperties": [],
+						"typeProperties": {
+							"variableName": "counter",
+							"value": "1"
+						}
+					},
+					{
+						"name": "Until counter is equal to 5",
+						"type": "Until",
+						"dependsOn": [
+							{
+								"activity": "Set counter to 1",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"expression": {
+								"value": "@equals(5,int(variables('counter')))",
+								"type": "Expression"
+							},
+							"activities": [
+								{
+									"name": "Add 1 to counter variable",
+									"description": "Add 1 to counter variable. Store in tempCounter as variables can't be self updated.\nDon't forget to convert the counter to int, and the result back to string.",
+									"type": "SetVariable",
+									"dependsOn": [],
+									"userProperties": [],
+									"typeProperties": {
+										"variableName": "tempCounter",
+										"value": {
+											"value": "@string(add(1,int(variables('counter'))))",
+											"type": "Expression"
+										}
+									}
+								},
+								{
+									"name": "Set counter equal to tempCounter",
+									"description": "Set the counter to tempCounter to finalise the increment of the count.",
+									"type": "SetVariable",
+									"dependsOn": [
+										{
+											"activity": "Add 1 to counter variable",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"userProperties": [],
+									"typeProperties": {
+										"variableName": "counter",
+										"value": {
+											"value": "@variables('tempCounter')",
+											"type": "Expression"
+										}
+									}
+								}
+							],
+							"timeout": "7.00:00:00"
+						}
+					}
+				],
+				"variables": {
+					"counter": {
+						"type": "String",
+						"defaultValue": "1"
+					},
+					"tempCounter": {
+						"type": "String"
+					}
+				},
+				"folder": {
+					"name": "Demo 2"
+				},
+				"annotations": []
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/D3-01 Read Array Input from Dataset')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Lookup D3_01InputDataset",
+						"type": "Lookup",
+						"dependsOn": [
+							{
+								"activity": "Get Folder Listing",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "BlobSource",
+								"recursive": false
+							},
+							"dataset": {
+								"referenceName": "D3_01InputDataset",
+								"type": "DatasetReference",
+								"parameters": {
+									"inputDatasetName": {
+										"value": "@first(activity('Get Folder Listing').output.childItems).name",
+										"type": "Expression"
+									}
+								}
+							},
+							"firstRowOnly": false
+						}
+					},
+					{
+						"name": "ForEach name in array",
+						"type": "ForEach",
+						"dependsOn": [
+							{
+								"activity": "Lookup D3_01InputDataset",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"items": {
+								"value": "@activity('Lookup D3_01InputDataset').output.value",
+								"type": "Expression"
+							},
+							"isSequential": true,
+							"activities": [
+								{
+									"name": "Add values to array",
+									"type": "AppendVariable",
+									"dependsOn": [],
+									"userProperties": [],
+									"typeProperties": {
+										"variableName": "array",
+										"value": {
+											"value": "@item().name",
+											"type": "Expression"
+										}
+									}
+								}
+							]
+						}
+					},
+					{
+						"name": "Execute D3-02 Pipeline",
+						"type": "ExecutePipeline",
+						"dependsOn": [
+							{
+								"activity": "ForEach name in array",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"pipeline": {
+								"referenceName": "D3-02 Filter Activity",
+								"type": "PipelineReference"
+							},
+							"waitOnCompletion": true,
+							"parameters": {
+								"inputArray": {
+									"value": "@variables('array')",
+									"type": "Expression"
+								}
+							}
+						}
+					},
+					{
+						"name": "Get Folder Listing",
+						"type": "GetMetadata",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataset": {
+								"referenceName": "D3_01Folder",
+								"type": "DatasetReference",
+								"parameters": {}
+							},
+							"fieldList": [
+								"childItems"
+							]
+						}
+					}
+				],
+				"variables": {
+					"array": {
+						"type": "Array"
+					}
+				},
+				"folder": {
+					"name": "Demo 3"
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/D3_01InputDataset')]",
+				"[concat(variables('factoryId'), '/pipelines/D3-02 Filter Activity')]",
+				"[concat(variables('factoryId'), '/datasets/D3_01Folder')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/D3-02 Filter Activity')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Filter for value3",
+						"type": "Filter",
+						"dependsOn": [],
+						"userProperties": [],
+						"typeProperties": {
+							"items": {
+								"value": "@pipeline().parameters.inputArray",
+								"type": "Expression"
+							},
+							"condition": {
+								"value": "@equals(item(), 'value3')",
+								"type": "Expression"
+							}
+						}
+					}
+				],
+				"parameters": {
+					"inputArray": {
+						"type": "Array"
+					}
+				},
+				"folder": {
+					"name": "Demo 3"
+				},
+				"annotations": []
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/D3_01Folder')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "AussieRobSQL_DFIntro_StorageAccount",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureBlob",
+				"typeProperties": {
+					"format": {
+						"type": "TextFormat",
+						"columnDelimiter": ",",
+						"rowDelimiter": "",
+						"nullValue": "\\N",
+						"treatEmptyAsNull": true,
+						"skipLineCount": 0,
+						"firstRowAsHeader": false
+					},
+					"folderPath": "[parameters('D3_01Folder_properties_typeProperties_folderPath')]"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/AussieRobSQL_DFIntro_StorageAccount')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/D3_01InputDataset')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "AussieRobSQL_DFIntro_StorageAccount",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"inputDatasetName": {
+						"type": "String"
+					}
+				},
+				"annotations": [],
+				"type": "AzureBlob",
+				"typeProperties": {
+					"format": {
+						"type": "JsonFormat",
+						"filePattern": "arrayOfObjects",
+						"jsonPathDefinition": {
+							"name": "$.['name']"
+						}
+					},
+					"fileName": {
+						"value": "[parameters('D3_01InputDataset_properties_typeProperties_fileName')]",
+						"type": "Expression"
+					},
+					"folderPath": "[parameters('D3_01InputDataset_properties_typeProperties_folderPath')]"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/AussieRobSQL_DFIntro_StorageAccount')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/AussieRobSQLFunctions')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureFunction",
+				"typeProperties": {
+					"functionAppUrl": "https://akdfintro.azurewebsites.net",
+					"functionKey": {
+						"type": "SecureString",
+						"value": "[parameters('AussieRobSQLFunctions_functionKey')]"
+					}
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/AussieRobSQL_DFIntro_StorageAccount')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"description": "AussieRobSQL_DFIntro_StorageAccount",
+				"annotations": [],
+				"type": "AzureBlobStorage",
+				"typeProperties": {
+					"connectionString": "[parameters('AussieRobSQL_DFIntro_StorageAccount_connectionString')]"
+				}
+			},
+			"dependsOn": []
+		}
+	]
+}
